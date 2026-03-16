@@ -1,0 +1,196 @@
+body {
+  color: #d9d9df;
+}
+
+a {
+  color: #f36aa2 !important;
+}
+
+a:hover {
+  color: #ff92bc !important;
+}
+
+::selection {
+  background: rgba(243, 106, 162, 0.35);
+  color: #fff;
+}
+
+/* Shared chrome */
+.topbar,
+#sidebar {
+  background: rgba(9, 10, 13, 0.92) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+}
+
+.topbar {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+
+.topbar-inner,
+.padded-shell {
+  max-width: 1560px;
+}
+
+.topbar strong,
+#sidebar-header h1,
+h1 {
+  color: #ffffff !important;
+}
+
+.topbar a,
+.doc-switch a,
+#toc a.active,
+.card a,
+.mini h3,
+h2,
+h3 {
+  color: #f36aa2 !important;
+}
+
+#toc a.active {
+  background: rgba(243, 106, 162, 0.16) !important;
+  border-left-color: #f36aa2 !important;
+}
+
+#toc a:hover,
+.doc-switch a:hover,
+.topbar a:hover {
+  background: rgba(255, 255, 255, 0.04);
+  text-decoration: none !important;
+}
+
+#search-box {
+  background: rgba(20, 20, 24, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+#search-box:focus {
+  border-color: #f36aa2 !important;
+  box-shadow: 0 0 0 2px rgba(243, 106, 162, 0.12);
+}
+
+/* Panels */
+.card,
+.note,
+.mini,
+table,
+pre,
+.diagram,
+.callout {
+  background: rgba(18, 18, 21, 0.92) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+}
+
+.card,
+.note,
+.mini,
+.callout {
+  backdrop-filter: blur(8px);
+}
+
+.note {
+  border-left-color: #f6b34b !important;
+}
+
+th {
+  background: #2a2a2f !important;
+  color: #f36aa2 !important;
+}
+
+tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+tr:hover td {
+  background: rgba(243, 106, 162, 0.06) !important;
+}
+
+code {
+  color: #ffd082 !important;
+  background: rgba(9, 10, 13, 0.94) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+pre code {
+  color: #d9d9df !important;
+}
+
+/* Landing page */
+body.docs-home .eyebrow {
+  color: #f36aa2;
+  border-color: rgba(243, 106, 162, 0.35);
+  background: rgba(243, 106, 162, 0.08);
+}
+
+body.docs-home .hero {
+  padding-top: 3.1rem;
+}
+
+body.docs-home h1 {
+  max-width: 860px;
+  font-weight: 800;
+}
+
+body.docs-home .lead {
+  color: #c8c8d0;
+}
+
+body.docs-home .grid {
+  gap: 1rem;
+}
+
+body.docs-home .card,
+body.docs-home .mini {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.docs-home .badge.operator {
+  background: rgba(243, 106, 162, 0.14) !important;
+  color: #ff9fc5 !important;
+}
+
+body.docs-home .badge.reference {
+  background: rgba(255, 255, 255, 0.07) !important;
+  color: #d9d9df !important;
+}
+
+body.docs-home .badge.builder {
+  background: rgba(255, 208, 130, 0.14) !important;
+  color: #ffd082 !important;
+}
+
+/* Guide/reference page rhythm */
+body.docs-content h2 {
+  padding: 0.7rem 0.95rem 0.75rem !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(42, 42, 47, 0.92);
+  border-radius: 6px 6px 0 0;
+  margin-bottom: 0 !important;
+}
+
+body.docs-content h2 + p,
+body.docs-content h2 + .card,
+body.docs-content h2 + .note,
+body.docs-content h2 + table,
+body.docs-content h2 + .diagram,
+body.docs-content h2 + ul {
+  margin-top: 0.9rem;
+}
+
+body.docs-content h3 {
+  color: #ffd082 !important;
+}
+
+body.docs-content main,
+body.docs-home main {
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 900px) {
+  body.docs-home .hero {
+    padding-top: 2rem;
+  }
+}
