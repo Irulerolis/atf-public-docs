@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Archival Museum Design Notes</title>
+<meta name="theme-color" content="#101827">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23101827'/%3E%3Ccircle cx='32' cy='32' r='18' fill='%23f472b6'/%3E%3Cpath d='M24 32h16M32 24v16' stroke='%230f172a' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #101827;
+  --panel: #182335;
+  --panel-2: #0f172a;
+  --border: #334155;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #f472b6;
+  --accent-2: #60a5fa;
+  --code: #0d1117;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background:
+    linear-gradient(180deg, rgba(7, 11, 20, 0.7), rgba(7, 11, 20, 0.9)),
+    url('docs_assets/backgrounddark-compressed.jpg') top center / cover fixed no-repeat,
+    var(--bg);
+  color: var(--text);
+  line-height: 1.75;
+}
+main {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2rem 1.4rem 4rem;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(15, 23, 42, 0.94);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+}
+.topbar-inner {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0.85rem 1.4rem;
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+.topbar a {
+  color: var(--accent-2);
+  text-decoration: none;
+}
+.topbar a:hover { text-decoration: underline; }
+h1 { margin: 0 0 0.4rem; color: var(--accent); }
+h2 {
+  margin: 2.2rem 0 0.8rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid #4c1d95;
+  color: var(--accent);
+}
+h3 { margin: 1.4rem 0 0.5rem; color: #f9a8d4; }
+p { margin: 0.6rem 0 1rem; }
+code {
+  background: var(--code);
+  color: #7dd3fc;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+}
+pre {
+  background: var(--code);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+}
+.card, .note {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  margin: 1rem 0;
+  backdrop-filter: blur(5px);
+}
+.note {
+  border-left: 4px solid var(--accent-2);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0 1.25rem;
+}
+th, td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  background: #2a1645;
+  color: #fbcfe8;
+}
+ul { margin: 0.4rem 0 1rem 1.35rem; }
+li { margin: 0.25rem 0; }
+.diagram {
+  background: var(--code);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  font-family: "Cascadia Code", Consolas, monospace;
+  white-space: pre-wrap;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <strong>Doc Set:</strong>
+    <a href="index.html">Docs Home</a>
+    <a href="archive_guide.html">Operator Guide</a>
+    <a href="archive_reference.html">System Reference</a>
+    <a href="archival_museum_design.html">Museum Builder Doc</a>
+  </div>
+</div>
+
+<main>
+  <h1>Archival Museum Design Notes</h1>
+  <p>This document is for people building a replica, archival museum, or long-lived public-facing reconstruction from captured site data. It is not an operator checklist. It is the “why this shape matters” companion to <a href="archive_guide.html">the operator guide</a> and <a href="archive_reference.html">the system reference</a>.</p>
+
+  <div class="note">
+    The goal is not simply to save files. The goal is to preserve enough identity, structure, and relationships that the archive can stand in for the original site after the original site is gone.
+  </div>
+
+  <h2>1. Non-Negotiable Goals</h2>
+  <ul>
+    <li><strong>Offline-first:</strong> the finished archive must still work if the live site disappears entirely.</li>
+    <li><strong>Relationship-preserving:</strong> threads, posts, users, media, resources, and categories must still point to each other correctly.</li>
+    <li><strong>Route-faithful:</strong> old links should land somewhere meaningful whenever possible.</li>
+    <li><strong>Honest fallbacks:</strong> if a thing was not captured, the museum should degrade clearly instead of pretending it has perfect parity.</li>
+    <li><strong>Raw-source preserving:</strong> transformed or sanitized output should not replace the original source captures.</li>
+  </ul>
+
+  <h2>2. What Must Be Preserved</h2>
+  <table>
+    <thead><tr><th>Entity</th><th>What matters</th></tr></thead>
+    <tbody>
+      <tr><td>Forum / category</td><td>Name, hierarchy, description, route, child-forum relationships</td></tr>
+      <tr><td>Thread</td><td>Stable ID, title, forum membership, pagination, page count, prefix, last-post info</td></tr>
+      <tr><td>Post</td><td>Stable post ID, thread/page position, author, timestamp, content, quote relationships</td></tr>
+      <tr><td>User</td><td>Stable member route/ID, display name, avatar if truly captured, profile links</td></tr>
+      <tr><td>Attachment / image</td><td>Original URL, local path, placement context, content hash</td></tr>
+      <tr><td>Media item</td><td>Category placement, item route, image/video files, author metadata</td></tr>
+      <tr><td>Resource</td><td>Category placement, download payload, detail-page metadata</td></tr>
+      <tr><td>Conversation / DM</td><td>Participant relationships, message order, stable internal links <em>(not captured &mdash; private data; replica returns 403)</em></td></tr>
+    </tbody>
+  </table>
+
+  <h2>3. What to Capture While the Site Is Still Alive</h2>
+  <ul>
+    <li>Representative page HTML for every page type and edge case.</li>
+    <li>Desktop and narrow-width screenshots for visual parity checks.</li>
+    <li>Route patterns and URL variants, including post anchors and old query-string forms.</li>
+    <li>Theme variables, CSS bundles, icons, logos, and local assets.</li>
+    <li>Empty states, error states, permission states, and odd pages like parent forums that do not act like simple thread lists.</li>
+  </ul>
+
+  <div class="card">
+    <h3>Why this matters</h3>
+    <p>Most archive failures are not caused by “missing files.” They are caused by missing relationships and missing UI context: not knowing which page type something belonged to, what link pattern it used, or what state the user expected after a click.</p>
+  </div>
+
+  <h2>4. Recommended Rendering Strategy</h2>
+  <div class="diagram">Prefer:
+saved HTML + structured data + local assets + route fidelity
+
+Avoid:
+rebuilding everything from scratch with a brand-new UX
+or depending on the live site for missing pieces</div>
+
+  <table>
+    <thead><tr><th>Approach</th><th>Why it helps</th><th>What to watch out for</th></tr></thead>
+    <tbody>
+      <tr><td>Server-rendered replica</td><td>Keeps route and DOM behavior closer to the source</td><td>Needs careful link and asset rewriting</td></tr>
+      <tr><td>Saved HTML as a source</td><td>Retains real post markup, quote blocks, and page structure</td><td>Must be sanitized and normalized before use</td></tr>
+      <tr><td>Structured fallbacks</td><td>Keeps partially captured pages functional</td><td>Must be clearly marked as fallback-backed, not full parity</td></tr>
+    </tbody>
+  </table>
+
+  <h2>5. Fallback Ladder</h2>
+  <p>Different page types can and should use different ladders. Do not force one “universal” content source if the page types are genuinely different.</p>
+  <div class="card">
+    <ul>
+      <li><strong>Thread page:</strong> saved thread HTML, then <code>thread.json</code>, then search/text fallback.</li>
+      <li><strong>Subforum page:</strong> saved forum page HTML, then <code>subforum_index.json</code>, then DB/search-derived rows.</li>
+      <li><strong>Profile page:</strong> saved profile HTML/JSON, then lighter metadata fallback.</li>
+      <li><strong>Homepage/sidebar:</strong> archive-backed snapshots first, temporary DB-backed fallbacks second, placeholders last.</li>
+    </ul>
+  </div>
+
+  <h2>6. Search, Routing, and Link Fidelity</h2>
+  <ul>
+    <li>Direct post links need a <code>post_id &rarr; thread/page</code> lookup.</li>
+    <li>Quote attribution links must resolve cross-page, not just same-page.</li>
+    <li>Blue inline links inside posts must be rewritten through local route logic and asset manifests.</li>
+    <li>Read-only archive actions should either route sensibly or be visibly non-functional, not broken.</li>
+  </ul>
+
+  <div class="card">
+    <h3>Important lesson</h3>
+    <p>Users notice bad click behavior faster than they notice many visual mismatches. If links feel random, the archive feels untrustworthy even when the saved files are technically present.</p>
+  </div>
+
+  <h3>URL patterns that need rewriting</h3>
+  <p>In our implementation, <code>_rewrite_saved_href()</code> handles ~15 URL pattern families. A museum builder should expect at least this many:</p>
+  <table>
+    <thead><tr><th>Pattern</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><code>/index.php?threads/slug.id/</code></td><td>Rewrite to local thread route, resolve post anchors</td></tr>
+      <tr><td><code>/index.php?threads/slug.id/post-NNN</code></td><td>Lookup post's actual page via DB, redirect to correct page with anchor</td></tr>
+      <tr><td><code>goto/post&amp;id=NNN</code>, <code>posts/NNN/</code></td><td>Resolve post &rarr; thread/page via two-database lookup chain</td></tr>
+      <tr><td><code>/index.php?members/slug.id/</code></td><td>Rewrite to local profile route</td></tr>
+      <tr><td><code>/index.php?forums/slug.id/</code></td><td>Rewrite to local subforum route</td></tr>
+      <tr><td><code>/index.php?media/</code>, <code>resources/</code></td><td>Rewrite to local gallery/resource routes</td></tr>
+      <tr><td><code>/index.php?conversations/</code></td><td>Route to graceful "not available" page (403)</td></tr>
+      <tr><td><code>posts/NNN/(react|bookmark|report)</code></td><td>Mute to <code>#</code> (dead action links)</td></tr>
+      <tr><td><code>threads/slug.id/reply</code></td><td>Mute to <code>#</code> (read-only archive)</td></tr>
+      <tr><td><code>login/</code>, <code>register/</code>, <code>account/</code></td><td>Mute to <code>#</code></td></tr>
+      <tr><td><code>help/</code> pages</td><td>Rewrite to <code>pages/</code> equivalent</td></tr>
+      <tr><td>Relative <code>index.php?...</code> (no leading <code>/</code>)</td><td>Normalize to absolute before other handlers see it</td></tr>
+      <tr><td>Asset URLs (images, attachments)</td><td>Rewrite through asset manifest to local <code>/forum/archive-asset</code> route</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Post location lookup chain</h3>
+  <p>Resolving "which page of which thread does post #12345 live on?" requires a two-step lookup:</p>
+  <div class="diagram">1. search.db: SELECT thread_id, page_number FROM posts WHERE post_id = ?
+   |
+   found? -> return (thread_id, page)
+   |
+   not found? -> fall through
+   |
+2. Saved HTML scan: iterate saved thread pages, parse post IDs from DOM
+   |
+   found? -> return (thread_id, page)
+   |
+   not found? -> 404</div>
+
+  <h2>7. Asset Strategy</h2>
+  <table>
+    <thead><tr><th>Asset class</th><th>Preferred behavior</th></tr></thead>
+    <tbody>
+      <tr><td>Thread attachments / inline images</td><td>Serve local files via manifest-backed local routes</td></tr>
+      <tr><td>Theme assets / icons / logos</td><td>Localize aggressively for parity</td></tr>
+      <tr><td>Avatars</td><td>Use only when clearly captured; otherwise fall back cleanly</td></tr>
+      <tr><td>External embeds</td><td>Decide whether to localize, stub, or show a non-live fallback</td></tr>
+    </tbody>
+  </table>
+
+  <h2>8. HTML Sanitization Strategy</h2>
+  <p>Saved HTML from a live site is not display-ready. It contains session-specific data, interactive elements, and tracking artifacts that must be stripped before the museum can render it safely.</p>
+
+  <h3>What to strip</h3>
+  <table>
+    <thead><tr><th>Category</th><th>Examples</th><th>Why it matters</th></tr></thead>
+    <tbody>
+      <tr><td>CSRF tokens</td><td><code>&lt;input name="_xfToken"&gt;</code>, hidden form fields</td><td>Leaks session state, causes confusing form elements</td></tr>
+      <tr><td>Session data</td><td>Logged-in user indicators, notification badges, "Mark read" links</td><td>Shows stale session state from crawl time</td></tr>
+      <tr><td>Tracking scripts</td><td><code>&lt;script&gt;</code> tags, analytics beacons, inline JS</td><td>Tries to phone home to dead servers, throws console errors</td></tr>
+      <tr><td>Interactive forms</td><td>Reply boxes, report buttons, reaction forms</td><td>Non-functional in read-only archive, confusing to users</td></tr>
+      <tr><td>Baked-in UI state</td><td>XenForo <code>.bbCodeBlock-expandLink</code> "Click to expand" elements, <code>.bbCodeBlock-expandContent</code> wrappers</td><td>Conflicts with dynamic JS that handles expand/collapse based on actual rendered height</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card">
+    <h3>Two-stage approach</h3>
+    <p>Our implementation uses two stages: (1) a dedicated <code>sanitize_html.py</code> (887 lines) that runs during crawl time for deep cleaning, and (2) runtime stripping in <code>data.py</code> when parsing saved HTML for display. The runtime stage catches things the crawl-time sanitizer missed or that are only relevant in the replica context (like expand/collapse UI that conflicts with our own JS).</p>
+  </div>
+
+  <h2>9. Multi-Source Data Model</h2>
+  <p>A museum does not have one universal data source. Different page types consume different combinations of available data, and the "best" source varies by page type.</p>
+
+  <table>
+    <thead><tr><th>Page type</th><th>Source priority (best &rarr; worst)</th></tr></thead>
+    <tbody>
+      <tr><td>Thread page</td><td>Saved HTML from MEGA &rarr; <code>search.db</code> posts (text-only fallback)</td></tr>
+      <tr><td>Subforum listing</td><td>Saved subforum HTML &rarr; <code>crawl_state.db</code> threads + <code>search.db</code> metadata</td></tr>
+      <tr><td>Forum home</td><td><code>subforum_map.json</code> + DB stats &rarr; <code>dom_structure.json</code> snapshot</td></tr>
+      <tr><td>User profile</td><td><code>crawl_state.db</code> profile data &rarr; username-only placeholder</td></tr>
+      <tr><td>Search</td><td><code>search.db</code> FTS5 (no fallback — requires index)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card">
+    <h3>Why this matters</h3>
+    <p>Trying to force a single "source chain" across all page types leads to either over-engineering (building a universal adapter) or under-serving (some pages always get the worst source). Let each page type pick the best source it has.</p>
+  </div>
+
+  <h2>10. QA and Parity Tracking</h2>
+  <ul>
+    <li>Keep a page-type inventory.</li>
+    <li>Track `archive-backed`, `fallback-backed`, and `placeholder` states separately.</li>
+    <li>Keep a mismatch list for real bugs found during visual QA.</li>
+    <li>Measure rich HTML coverage by subforum and by page type.</li>
+  </ul>
+
+  <h2>11. Anti-Patterns to Avoid</h2>
+  <ul>
+    <li>Do not overwrite raw HTML just because sanitized HTML is easier to work with.</li>
+    <li>Do not collapse parent forums and thread-list pages into one page type.</li>
+    <li>Do not guess missing avatars or other user assets too aggressively.</li>
+    <li>Do not let the museum silently depend on live routes, live CDNs, or live AJAX endpoints.</li>
+    <li>Do not mark placeholders as “done” in documentation just because the shell exists.</li>
+  </ul>
+
+  <h2>12. Suggested Build Order</h2>
+  <p>Updated to reflect current progress and remaining work:</p>
+  <table>
+    <thead><tr><th>#</th><th>Phase</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Forum home and top navigation parity</td><td>Done</td></tr>
+      <tr><td>2</td><td>Parent forum / node index pages</td><td>Done</td></tr>
+      <tr><td>3</td><td>Normal subforum thread listings</td><td>Functional</td></tr>
+      <tr><td>4</td><td>Thread page with real saved HTML post bodies</td><td>Functional (6 General subforums have rich HTML)</td></tr>
+      <tr><td>5</td><td>Thread images/attachments from local archive</td><td>Done (asset manifest wiring complete)</td></tr>
+      <tr><td>6</td><td>Direct post-link and quote-link fidelity</td><td>~90% done (3 edge cases remaining)</td></tr>
+      <tr><td>7</td><td>HTML sanitization and expand/collapse handling</td><td>Done</td></tr>
+      <tr><td>8</td><td>Signature rendering</td><td>Pending</td></tr>
+      <tr><td>9</td><td>Lightbox for images</td><td>Pending</td></tr>
+      <tr><td>10</td><td>Profiles (richer display)</td><td>Basic placeholder exists</td></tr>
+      <tr><td>11</td><td>Media and resource detail pages</td><td>Placeholder shells only</td></tr>
+      <tr><td>12</td><td>Search refinements and advanced filters</td><td>Basic FTS5 search works, filters pending</td></tr>
+      <tr><td>13</td><td>Static/utility pages (rules, FAQ, help)</td><td>Route exists, content pending</td></tr>
+    </tbody>
+  </table>
+
+  <h2>13. Lessons Learned</h2>
+  <p>Non-obvious problems encountered during this build that a future museum builder should watch for:</p>
+
+  <div class="card">
+    <h3>XenForo expand/collapse conflicts</h3>
+    <p>XenForo bakes <code>.bbCodeBlock-expandLink</code> ("Click to expand...") and <code>.bbCodeBlock-expandContent</code> wrapper divs directly into saved HTML. If the museum uses its own JS to handle expand/collapse based on actual rendered height (e.g., a 300px threshold), these baked-in elements cause false "Click to expand" on short quotes. The fix: strip the static elements at render time and let JS be the sole handler.</p>
+  </div>
+
+  <div class="card">
+    <h3>Scroll offset behind sticky nav</h3>
+    <p>Using <code>scrollIntoView({block:'start'})</code> puts the target at the very top of the viewport, which gets hidden behind a sticky navigation bar. The fix: calculate scroll position manually using <code>getBoundingClientRect().top + window.scrollY - navHeight - padding</code>. Also set <code>scroll-margin-top</code> in CSS for anchor targets.</p>
+  </div>
+
+  <div class="card">
+    <h3>URL handler ordering matters</h3>
+    <p>Action links like <code>threads/slug.id/reply&amp;quote=456</code> match the thread URL pattern before they reach the "dead action link" check. The fix: check for action patterns (react, bookmark, report, reply) <em>before</em> the thread URL handler in the rewrite chain. Order of pattern checks is not just aesthetic — it determines correctness.</p>
+  </div>
+
+  <div class="card">
+    <h3>Relative vs. absolute link normalization</h3>
+    <p>Saved HTML sometimes contains relative links like <code>index.php?threads/...</code> (no leading <code>/</code>) instead of <code>/index.php?threads/...</code>. All downstream URL handlers expect absolute paths. The fix: normalize early by prepending <code>/</code> to any <code>href</code> starting with <code>index.php?</code> before other rewrite logic runs.</p>
+  </div>
+
+  <div class="card">
+    <h3>Cross-thread post resolution</h3>
+    <p>When a post redirect resolves via the database, the post might belong to a different thread than the one in the incoming URL (e.g., a cross-thread quote). Using the incoming thread's slug in the redirect URL sends the user to the wrong thread. Always resolve the slug from the database-returned thread ID, not the URL.</p>
+  </div>
+</main>
+</body>
+</html>

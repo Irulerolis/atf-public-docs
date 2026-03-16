@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATF Archive Operator Guide</title>
+<meta name="theme-color" content="#0f172a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230f172a'/%3E%3Cpath d='M18 16h22a6 6 0 0 1 6 6v26l-10-5-10 5-10-5V22a6 6 0 0 1 6-6Z' fill='%233b82f6'/%3E%3C/svg%3E">
+<style>
+/* ── CSS Custom Properties ── */
+:root {
+  --bg-body: #111827;
+  --bg-sidebar: #0f172a;
+  --bg-card: #1e293b;
+  --bg-code: #0d1117;
+  --bg-table-stripe: #1a2332;
+  --bg-hover: #334155;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-dim: #1e3a5f;
+  --border: #334155;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --sidebar-w: 280px;
+  --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+}
+
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 15px; }
+body {
+  font-family: var(--font-sans);
+  background:
+    linear-gradient(180deg, rgba(7, 11, 20, 0.72), rgba(7, 11, 20, 0.9)),
+    url('docs_assets/backgrounddark-compressed.jpg') top center / cover fixed no-repeat,
+    var(--bg-body);
+  color: var(--text-primary);
+  line-height: 1.7;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── Sidebar ── */
+#sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.88);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+  backdrop-filter: blur(8px);
+}
+#sidebar-header {
+  padding: 1.2rem 1rem 0.8rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+#sidebar-header h1 {
+  font-size: 1.05rem;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+#sidebar-header .subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.doc-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.7rem;
+  margin-top: 0.6rem;
+  font-size: 0.78rem;
+}
+.doc-switch a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.doc-switch a:hover { text-decoration: underline; }
+#search-box {
+  width: 100%;
+  margin-top: 0.7rem;
+  padding: 0.45rem 0.65rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  outline: none;
+  font-family: var(--font-sans);
+}
+#search-box:focus { border-color: var(--accent); }
+#search-box::placeholder { color: var(--text-muted); }
+
+#toc {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.6rem 0;
+}
+#toc ul { list-style: none; }
+#toc > ul > li { margin-bottom: 2px; }
+#toc a {
+  display: block;
+  padding: 0.3rem 1rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.82rem;
+  border-left: 3px solid transparent;
+  transition: all 0.15s;
+}
+#toc a:hover { color: var(--text-primary); background: var(--bg-hover); }
+#toc a.active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: var(--accent-dim);
+}
+#toc .toc-h3 { padding-left: 2rem; font-size: 0.78rem; }
+#toc .toc-group-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+#toc .toc-group-toggle::before {
+  content: '\25BC';
+  display: inline-block;
+  width: 1em;
+  font-size: 0.6em;
+  vertical-align: middle;
+  transition: transform 0.2s;
+  margin-right: 0.3em;
+}
+#toc .toc-group-toggle.collapsed::before { transform: rotate(-90deg); }
+#toc .toc-children { overflow: hidden; transition: max-height 0.3s ease; }
+#toc .toc-children.collapsed { max-height: 0 !important; }
+
+/* ── Main Content ── */
+#content {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  max-width: 900px;
+  padding: 2.5rem 3rem 4rem;
+}
+
+/* ── Toggle button (mobile) ── */
+#sidebar-toggle {
+  display: none;
+  position: fixed;
+  top: 0.7rem; left: 0.7rem;
+  z-index: 200;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 0.4rem 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+/* ── Typography ── */
+h2 {
+  font-size: 1.55rem;
+  color: var(--accent);
+  margin: 2.5rem 0 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--accent-dim);
+  font-weight: 700;
+}
+h2:first-of-type { margin-top: 0; }
+h3 {
+  font-size: 1.15rem;
+  color: var(--accent-hover);
+  margin: 1.8rem 0 0.7rem;
+  font-weight: 600;
+}
+h4 {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  margin: 1.2rem 0 0.5rem;
+  font-weight: 600;
+}
+p { margin-bottom: 0.8rem; }
+strong { color: var(--text-primary); }
+em { color: var(--text-secondary); font-style: italic; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); text-decoration: underline; }
+ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+li { margin-bottom: 0.3rem; }
+
+/* ── Code ── */
+code {
+  font-family: var(--font-mono);
+  background: var(--bg-code);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.88em;
+  color: #7dd3fc;
+}
+pre {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  overflow-x: auto;
+  margin: 0.8rem 0 1.2rem;
+  line-height: 1.5;
+}
+pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+.kw { color: #c084fc; }
+.str { color: #86efac; }
+.cmt { color: #64748b; font-style: italic; }
+.fn { color: #7dd3fc; }
+.num { color: #fbbf24; }
+
+/* ── Tables ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8rem 0 1.2rem;
+  font-size: 0.88rem;
+}
+thead { position: sticky; top: 0; }
+th {
+  background: var(--accent-dim);
+  color: var(--accent-hover);
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  font-weight: 600;
+  border-bottom: 2px solid var(--accent);
+}
+td {
+  padding: 0.5rem 0.8rem;
+  border-bottom: 1px solid var(--border);
+}
+tr:nth-child(even) td { background: var(--bg-table-stripe); }
+tr:hover td { background: var(--bg-hover); }
+
+/* ── Cards / Info Boxes ── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.2rem;
+  margin: 1rem 0;
+  backdrop-filter: blur(6px);
+}
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.9rem;
+  margin-top: 0.9rem;
+}
+.doc-card {
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.95rem 1rem;
+}
+.doc-card.current {
+  border-color: rgba(59, 130, 246, 0.5);
+  background: rgba(30, 58, 95, 0.42);
+}
+.doc-card h4 {
+  margin: 0 0 0.35rem;
+  color: var(--accent-hover);
+}
+.doc-card p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+.doc-card a {
+  display: inline-block;
+  margin-top: 0.65rem;
+  font-weight: 600;
+}
+.tracking-note {
+  margin-top: 0.9rem;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+.info-box {
+  border-left: 4px solid var(--accent);
+  background: var(--accent-dim);
+  padding: 0.8rem 1rem;
+  border-radius: 0 6px 6px 0;
+  margin: 0.8rem 0;
+  font-size: 0.9rem;
+}
+.warn-box {
+  border-left: 4px solid var(--warning);
+  background: #422006;
+  padding: 0.8rem 1rem;
+  border-radius: 0 6px 6px 0;
+  margin: 0.8rem 0;
+  font-size: 0.9rem;
+}
+.danger-box {
+  border-left: 4px solid var(--danger);
+  background: #450a0a;
+  padding: 0.8rem 1rem;
+  border-radius: 0 6px 6px 0;
+  margin: 0.8rem 0;
+  font-size: 0.9rem;
+}
+
+/* ── Details/Summary ── */
+details {
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 0.8rem 0;
+  backdrop-filter: blur(6px);
+}
+details > summary {
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--accent-hover);
+  user-select: none;
+}
+details > summary:hover { background: var(--bg-hover); border-radius: 8px; }
+details[open] > summary { border-bottom: 1px solid var(--border); border-radius: 8px 8px 0 0; }
+details > .details-body { padding: 1rem; }
+
+/* ── Diagram blocks ── */
+.diagram {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.2rem;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  margin: 0.8rem 0 1.2rem;
+  white-space: pre;
+}
+
+/* ── Back to top ── */
+#back-to-top {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  font-size: 1.3rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  z-index: 50;
+}
+#back-to-top.visible { opacity: 1; pointer-events: auto; }
+#back-to-top:hover { background: var(--accent-hover); }
+
+/* ── Section ── */
+section { scroll-margin-top: 1rem; }
+
+/* ── Badges ── */
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.badge-blue { background: var(--accent-dim); color: var(--accent-hover); }
+.badge-green { background: #064e3b; color: #6ee7b7; }
+.badge-yellow { background: #422006; color: #fcd34d; }
+.badge-red { background: #450a0a; color: #fca5a5; }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  #sidebar { transform: translateX(-100%); }
+  #sidebar.open { transform: translateX(0); }
+  #sidebar-toggle { display: block; }
+  #content { margin-left: 0; padding: 2rem 1.5rem; }
+}
+
+/* ── Print ── */
+@media print {
+  #sidebar, #sidebar-toggle, #back-to-top { display: none !important; }
+  #content { margin-left: 0; max-width: 100%; padding: 0; }
+  body { background: #fff; color: #1a1a1a; }
+  h2 { color: #1a1a1a; border-color: #ccc; }
+  h3, h4 { color: #333; }
+  code { background: #f0f0f0; color: #333; }
+  pre { background: #f5f5f5; border-color: #ddd; }
+  pre code { color: #333; }
+  .card, details { border-color: #ddd; background: #fafafa; }
+  .info-box { background: #e8f4fd; border-color: #2563eb; }
+  table, th, td { border: 1px solid #ccc; }
+  th { background: #e5e7eb; color: #333; }
+  tr:nth-child(even) td { background: #f9fafb; }
+  a { color: #2563eb; }
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar Toggle (mobile) -->
+<button id="sidebar-toggle" aria-label="Toggle navigation">&#9776;</button>
+
+<!-- Sidebar -->
+<nav id="sidebar">
+  <div id="sidebar-header">
+    <h1>ATF Archive Guide</h1>
+    <div class="subtitle">Operator Runbook</div>
+    <div class="doc-switch">
+      <a href="index.html">Docs Home</a>
+      <a href="archive_reference.html">Reference</a>
+      <a href="archival_museum_design.html">Builder Doc</a>
+    </div>
+    <input type="text" id="search-box" placeholder="Search sections..." autocomplete="off">
+  </div>
+  <div id="toc"><!-- JS generates TOC here --></div>
+</nav>
+
+<!-- Main Content -->
+<main id="content">
+
+<!-- ============================================================ -->
+<!-- SECTION 1: OVERVIEW -->
+<!-- ============================================================ -->
+<section id="overview">
+<h2>1. Start Here</h2>
+
+<p>The <strong>ATF Archive System</strong> is a preservation stack for four jobs: mapping the site, crawling forum text, collecting thread media, and mirroring gallery/resources. This guide now puts <strong>operator workflow first</strong> so you can quickly answer: <em>what should I run next?</em></p>
+
+<div class="info-box">
+  <strong>How to use this guide:</strong> If you are actively running the archive, stay in this file. If you want internals or replica-builder theory, jump to <a href="archive_reference.html">archive_reference.html</a> or <a href="archival_museum_design.html">archival_museum_design.html</a>.
+</div>
+
+<div class="warn-box">
+  <strong>Security note:</strong> This guide intentionally avoids real credentials, session values, browser-exported auth details, and machine-specific secrets. Keep all authentication and storage access details in your local <code>config.py</code> and runtime files only.
+</div>
+
+<div class="card">
+  <h3 id="doc-set">Companion Docs</h3>
+  <p>Use this as your decision point. Stay here if you are operating the archive. Jump out only when you need system internals or museum-builder context.</p>
+  <div class="doc-grid">
+    <div class="doc-card current">
+      <h4>Operator Guide</h4>
+      <p>You are here. Use this for command order, restart decisions, repair flow, and troubleshooting.</p>
+    </div>
+    <div class="doc-card">
+      <h4>System Reference</h4>
+      <p>Architecture, queues, state files, deduplication, database roles, and debugging-oriented internals.</p>
+      <a href="archive_reference.html">Open system reference</a>
+    </div>
+    <div class="doc-card">
+      <h4>Museum Builder Doc</h4>
+      <p>Replica strategy, archival museum lessons, link fidelity, sanitization, and design rules for future builders.</p>
+      <a href="archival_museum_design.html">Open builder doc</a>
+    </div>
+  </div>
+  <p class="tracking-note">Project tracking lives in <strong>REPLICA_CHECKLIST.md</strong> (build status and priorities) and <strong>REPLICA_TRACKER.xlsx</strong> (per-page-type coverage and QA mismatches).</p>
+</div>
+
+<h3 id="choose-your-path">Choose Your Path</h3>
+<table>
+<thead><tr><th>If you want to...</th><th>Read first</th><th>Run first</th></tr></thead>
+<tbody>
+<tr><td>Start the archive from scratch</td><td>2, 3, 4-8</td><td><code>python test_login.py</code>, then the scouts</td></tr>
+<tr><td>Resume after a stop or crash</td><td>2, 5-10</td><td><code>python app.py</code> and restart the crawler families you were using</td></tr>
+<tr><td>Do a fast text-first pass</td><td>2, 3, 5</td><td><code>python crawler.py --id 1 --text-only</code></td></tr>
+<tr><td>Catch up media after a text-first pass</td><td>2, 5, 8</td><td><code>python thread_media_crawler.py --id 1</code></td></tr>
+<tr><td>Repair a messy run</td><td>5, 6, 9, 10</td><td>The matching repair tool, then <code>python retry.py</code></td></tr>
+<tr><td>Browse the archive later</td><td>2, 9</td><td><code>python build_search.py /path/to/archive</code>, or <code>cd replica/ &amp;&amp; python app.py</code></td></tr>
+<tr><td>Understand how the system is wired together</td><td>Use the companion docs</td><td>Open <a href="archive_reference.html">archive_reference.html</a> or <a href="archival_museum_design.html">archival_museum_design.html</a></td></tr>
+</tbody>
+</table>
+
+<h3 id="workflow-at-a-glance">Workflow at a Glance</h3>
+<div class="diagram">
+local config + access
+        |
+        v
+ python test_login.py
+        |
+        v
+ scouts (forum / media / resources)
+        |
+        v
+ queues + folder maps created
+        |
+        v
+ forum crawl / media crawl / resource crawl
+        |
+        v
+ repair + retry + reconcile
+        |
+        v
+ search / browse / replica build later
+</div>
+
+<h3 id="key-numbers">Key Numbers</h3>
+<div class="card">
+<table>
+<thead><tr><th>Metric</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Forum subforums</td><td>142 discovered</td></tr>
+<tr><td>Forum crawlers</td><td>Up to 15 parallel instances via <code>--id</code></td></tr>
+<tr><td>Media gallery categories</td><td>21 total, with 3 excluded AI categories</td></tr>
+<tr><td>Resource categories</td><td>86</td></tr>
+<tr><td>Queue chunk size</td><td>100 pages per work unit</td></tr>
+<tr><td>Background workers</td><td>3 workers per media / resource / thread-media crawler</td></tr>
+<tr><td>Shared state database</td><td><code>crawl_state.db</code> in SQLite WAL mode</td></tr>
+<tr><td>Archive browser (legacy)</td><td><code>serve_archive.py</code> plus <code>search.db</code></td></tr>
+<tr><td>Replica server</td><td><code>replica/app.py</code> &mdash; Flask, XenForo-style routes, saved HTML rendering</td></tr>
+<tr><td>Search index (search.db)</td><td>2,677 threads, 63,060 posts (59,397 with text content), FTS5</td></tr>
+<tr><td>Crawl state (crawl_state.db)</td><td>1,385 threads, 10,386 profiles, 142 subforums tracked</td></tr>
+<tr><td>Saved HTML pages</td><td>~340 threads, ~4,993 pages across 6 General subforums (from MEGA)</td></tr>
+<tr><td>Shared crawler modules</td><td><code>forum/</code> package (15 modules), <code>crawler_common.py</code>, <code>scout_common.py</code></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 2: QUICK REFERENCE -->
+<!-- ============================================================ -->
+<section id="quick-ref">
+<h2>2. What Do I Run? (Operator Matrix)</h2>
+
+<p>This is the new cheat sheet. If you only read one section during active work, make it this one.</p>
+
+<table>
+<thead><tr><th>Situation</th><th>What to run</th><th>You can stop when...</th></tr></thead>
+<tbody>
+<tr><td>First bring-up</td><td><code>python test_login.py</code><br><code>python Scout.py</code><br><code>python scout_media.py</code><br><code>python scout_resources.py</code></td><td>Maps, queues, and folder structure exist cleanly</td></tr>
+<tr><td>Normal crawl session</td><td><code>python app.py</code><br><code>python media_crawler.py --id 1</code><br><code>python resource_crawler.py --id 1</code></td><td>The forum dashboard is moving and the background crawlers are draining work</td></tr>
+<tr><td>Fast text-only pass</td><td><code>python crawler.py --id 1 --text-only</code></td><td>Forum text is mapped and <code>pending_media_XX.json</code> files exist</td></tr>
+<tr><td>Catch up thread media later</td><td><code>python thread_media_crawler.py --id 1</code></td><td>The pending media queue is shrinking and uploads are landing</td></tr>
+<tr><td>Resume after interruption</td><td>Re-run the same commands you were using</td><td>Work starts moving again without rebuilding anything</td></tr>
+<tr><td>Check health</td><td><code>python reconcile.py --dry-run</code><br>open <code>summary_XX.txt</code></td><td>You understand whether the issue is noise, retryable, or real damage</td></tr>
+<tr><td>Repair after issues</td><td><code>python repair_zero_threads.py --fix</code><br><code>python repair_failed_images.py --fix</code><br><code>python retry.py</code></td><td>The damaged items have been put back into circulation</td></tr>
+<tr><td>Browse later offline</td><td><code>python build_search.py /path/to/archive</code><br><code>python serve_archive.py /path/to/archive</code></td><td>The local archive viewer can search and open pages</td></tr>
+</tbody>
+</table>
+
+<h3 id="qr-most-common-paths">Most Common Paths</h3>
+<div class="card">
+<pre><code><span class="cmt"># Start clean</span>
+python test_login.py
+python Scout.py
+python scout_media.py
+python scout_resources.py
+python app.py
+
+<span class="cmt"># Optional background families</span>
+python media_crawler.py --id 1
+python resource_crawler.py --id 1
+
+<span class="cmt"># Text-first workflow</span>
+python crawler.py --id 1 --text-only
+python thread_media_crawler.py --id 1
+
+<span class="cmt"># Repair / verify</span>
+python retry.py
+python reconcile.py --dry-run</code></pre>
+</div>
+
+<h3 id="qr-four-crawlers">The Four Crawler Families</h3>
+<div class="card">
+<table>
+<thead><tr><th>Crawler</th><th>Captures</th><th>Input queue</th><th>Run it when...</th></tr></thead>
+<tbody>
+<tr><td><code>crawler.py</code></td><td>Forum threads, post text, thread metadata, search records</td><td><code>work_queue.json</code></td><td>You need the forum itself</td></tr>
+<tr><td><code>thread_media_crawler.py</code></td><td>Images, attachments, videos linked from forum posts</td><td><code>pending_media_XX.json</code></td><td>You already did text-first or want thread media catch-up</td></tr>
+<tr><td><code>media_crawler.py</code></td><td>XFMG gallery media</td><td><code>media_queue.json</code></td><td>You want the gallery mirrored too</td></tr>
+<tr><td><code>resource_crawler.py</code></td><td>XFRM download payloads</td><td><code>resource_queue.json</code></td><td>You want the download library mirrored too</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="danger-box">
+  <strong>Do not skip the scouts on first setup.</strong> They create the queue inputs and destination structure the crawlers expect.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 3: QUICK START -->
+<!-- ============================================================ -->
+<section id="quick-start">
+<h2>3. First Setup</h2>
+
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+  <li><strong>Python 3.11 or 3.12</strong></li>
+  <li><strong>Playwright + Chromium</strong></li>
+  <li><strong>mega.py</strong>, <strong>requests</strong>, and <strong>beautifulsoup4</strong></li>
+  <li><strong>customtkinter</strong> if you want the GUI launcher / dashboard</li>
+</ul>
+
+<h3 id="config-setup">Local Configuration</h3>
+<p>Edit <code>config.py</code> with your local access details and destination settings. Keep real auth/session values in that local file only; the guide deliberately stays generic.</p>
+<div class="card">
+<pre><code><span class="cmt"># 1. Verify local access before a long crawl</span>
+python test_login.py
+
+<span class="cmt"># 2. Only after login looks healthy, continue into the scouts</span></code></pre>
+</div>
+
+<h3 id="bring-up-order">Bring-Up Order</h3>
+<div class="card">
+<ol>
+  <li><strong>Verify login</strong> &mdash; <code>python test_login.py</code></li>
+  <li><strong>Map the forum</strong> &mdash; <code>python Scout.py</code></li>
+  <li><strong>Map the media gallery</strong> &mdash; <code>python scout_media.py</code></li>
+  <li><strong>Map the resource manager</strong> &mdash; <code>python scout_resources.py</code></li>
+  <li><strong>Start the forum launcher / dashboard</strong> &mdash; <code>python app.py</code></li>
+  <li><strong>Optionally start the gallery and resource crawlers</strong> in separate terminals</li>
+</ol>
+</div>
+
+<h3 id="manual-vs-dashboard">Manual vs Dashboard</h3>
+<table>
+<thead><tr><th>Need</th><th>Recommended command</th></tr></thead>
+<tbody>
+<tr><td>Normal operator session</td><td><code>python app.py</code></td></tr>
+<tr><td>Manual single forum worker</td><td><code>python crawler.py --id 1</code></td></tr>
+<tr><td>Manual text-only run</td><td><code>python crawler.py --id 1 --text-only</code></td></tr>
+<tr><td>Direct gallery worker</td><td><code>python media_crawler.py --id 1</code></td></tr>
+<tr><td>Direct resource worker</td><td><code>python resource_crawler.py --id 1</code></td></tr>
+</tbody>
+</table>
+
+<div class="info-box">
+  <strong>Tip:</strong> The fastest low-risk way to confirm the whole stack is healthy is <code>test_login.py</code> first, scouts second, <code>app.py</code> last.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 4: SCOUTS -->
+<!-- ============================================================ -->
+<section id="scouts">
+<h2>4. Scouts (Pre-Flight)</h2>
+
+<h3 id="forum-scout">4a. Forum Scout (Scout.py)</h3>
+<p>The forum scout is the <strong>first thing to run</strong>. It discovers the complete forum hierarchy using XenForo breadcrumbs (more reliable than HTML structure guessing). Note: the filename is <code>Scout.py</code> with a capital S.</p>
+<div class="card">
+<h4>What it does:</h4>
+<ol>
+  <li>Starts a Playwright session using your local auth/session settings</li>
+  <li>Navigates to the forum index page</li>
+  <li>Collects all forum/subforum URLs</li>
+  <li>Visits each forum, reads the breadcrumb trail to build the hierarchy</li>
+  <li>Outputs <code>subforum_map.json</code> (142 subforums with URL, name, description, MEGA path parts)</li>
+  <li>Pre-creates all MEGA folders before crawling starts</li>
+</ol>
+<h4>Output: <code>subforum_map.json</code></h4>
+<p>Structure: Array of objects with <code>url</code>, <code>name</code>, <code>description</code>, and <code>mega_path_parts</code> (array of folder names for MEGA hierarchy).</p>
+</div>
+
+<h3 id="media-scout">4b. Media Scout (scout_media.py)</h3>
+<p>Maps the XFMG (XenForo Media Gallery) structure for the media crawler.</p>
+<div class="card">
+<h4>What it does:</h4>
+<ol>
+  <li>Discovers all XFMG categories</li>
+  <li>Counts items and pages per category</li>
+  <li>Samples 10 items per category for overlap analysis</li>
+  <li>Detects album structures</li>
+  <li>Identifies AI-generated categories to exclude: <code>ai.20</code>, <code>ai-loli.21</code>, <code>ai-shota.23</code></li>
+</ol>
+<h4>Output: <code>media_gallery_report.json</code></h4>
+<p>Used by <code>media_queue.py</code> to build the work queue.</p>
+</div>
+
+<h3 id="resource-scout">4c. Resource Scout (scout_resources.py)</h3>
+<p>Maps the XFRM (XenForo Resource Manager) structure.</p>
+<div class="card">
+<h4>What it does:</h4>
+<ol>
+  <li>Discovers all 86 XFRM categories</li>
+  <li>Counts resources and pages per category</li>
+  <li>Samples 10 resources per category</li>
+  <li>Identifies file-downloadable vs external-only resources</li>
+  <li>No categories excluded (unlike media)</li>
+</ol>
+<h4>Output: <code>resources_report.json</code></h4>
+<p>Used by <code>resource_queue.py</code> to build the work queue.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 5: FORUM CRAWLERS -->
+<!-- ============================================================ -->
+<section id="forum-crawlers">
+<h2>5. Forum Crawlers</h2>
+
+<h3 id="forum-how-it-works">How Multi-Instance Works</h3>
+<p>A single <code>crawler.py</code> file supports multiple parallel instances via the <code>--id</code> flag. Each instance gets its own state files, temp directory, and log output. All instances compete for work from the same <code>work_queue.json</code>.</p>
+
+<h3 id="forum-cli">CLI Reference</h3>
+<div class="card">
+<pre><code>python crawler.py --id 1 --start 1 --end 50         <span class="cmt"># crawl subforums 1-50</span>
+python crawler.py --id 2 --start 51 --end 100        <span class="cmt"># crawl subforums 51-100</span>
+python crawler.py --id 1 --text-only                 <span class="cmt"># text + metadata only, queue media URLs</span>
+python crawler.py -i 3 -s 1 -e 999 -t               <span class="cmt"># short flags</span></code></pre>
+<table>
+<thead><tr><th>Flag</th><th>Short</th><th>Default</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>--id</code></td><td><code>-i</code></td><td>1</td><td>Instance ID (1-20). Determines state file names.</td></tr>
+<tr><td><code>--start</code></td><td><code>-s</code></td><td>1</td><td>Start subforum index (1-based, inclusive).</td></tr>
+<tr><td><code>--end</code></td><td><code>-e</code></td><td>999</td><td>End subforum index (inclusive, 999 = no limit).</td></tr>
+<tr><td><code>--text-only</code></td><td><code>-t</code></td><td>off</td><td>Skip all binary downloads. Queue media URLs to <code>pending_media_XX.json</code> for later processing by <code>thread_media_crawler.py</code>.</td></tr>
+</tbody>
+</table>
+<p>The dashboard (<code>app.py</code>) launches multiple instances automatically and passes the <code>--id</code>, <code>--start</code>, and <code>--end</code> flags.</p>
+</div>
+
+<h3 id="work-queue">Work Queue System (work_queue.py)</h3>
+<div class="card">
+<p>The work queue uses <strong>dynamic claiming</strong> instead of permanent assignment. Key functions:</p>
+<ul>
+  <li><code>claim_next_subforum()</code> &mdash; atomically claims an unclaimed subforum</li>
+  <li><code>heartbeat_subforum()</code> &mdash; proves the instance is still alive (every 5 min)</li>
+  <li><code>complete_subforum()</code> &mdash; marks a subforum as done</li>
+</ul>
+<p><strong>Stale timeout:</strong> 20 minutes. If a crawler dies, its work becomes available for others.</p>
+<p><strong>File locking:</strong> Atomic <code>O_CREAT | O_EXCL</code> with a 10-second timeout.</p>
+</div>
+
+<h3 id="forum-scraping-flow">Thread/Post Scraping Flow</h3>
+<ol>
+  <li>Claim a subforum from the work queue</li>
+  <li>Navigate to subforum listing, discover all thread URLs</li>
+  <li>For each thread: check <code>crawl_state.db</code> (microsecond SQLite lookup) &mdash; skip if done</li>
+  <li>Mark thread as <code>in_progress</code> in SQLite with instance ownership</li>
+  <li>Scrape all pages of posts, updating page progress in SQLite</li>
+  <li>For each post: download embedded images and attachments</li>
+  <li>Upload files to MEGA in the correct subforum folder, record URLs in SQLite</li>
+  <li>Index thread/post text into SQLite FTS5 search database</li>
+  <li>Save thread data as <code>thread.json</code> with all post content</li>
+  <li>Mark thread as <code>done</code> in SQLite + write legacy <code>.done</code> marker</li>
+</ol>
+
+<h3 id="search-indexing">Search Database (search_db.py)</h3>
+<p>Each crawler instance writes to the same <code>search.db</code> SQLite database using WAL mode and a 10-second busy timeout for safe concurrent writes from 15+ instances. Uses FTS5 for full-text search across threads, posts, tags, and subforums.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 6: MEDIA GALLERY CRAWLER -->
+<!-- ============================================================ -->
+<section id="media-crawler">
+<h2>6. Media Gallery Crawler</h2>
+
+<h3 id="media-overview">Overview</h3>
+<p><code>media_crawler.py</code> crawls the XenForo Media Gallery (XFMG) &mdash; images, videos, and audio files uploaded by users. It <strong>excludes AI-generated content</strong> from 3 categories (~437K items skipped): <code>ai.20</code>, <code>ai-loli.21</code>, <code>ai-shota.23</code>.</p>
+
+<h3 id="media-cli">CLI Reference</h3>
+<div class="card">
+<pre><code>python media_crawler.py --id 1      <span class="cmt"># run as instance 1</span>
+python media_crawler.py --id 2      <span class="cmt"># run a second instance in another terminal</span></code></pre>
+<table>
+<thead><tr><th>Flag</th><th>Short</th><th>Required</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>--id</code></td><td><code>-i</code></td><td>Yes</td><td>Instance ID (1-based). Determines state file names and queue claiming.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="media-strategies">5 Download Strategies (Priority Order)</h3>
+<div class="card">
+<table>
+<thead><tr><th>#</th><th>Strategy</th><th>How It Works</th></tr></thead>
+<tbody>
+<tr><td><span class="badge badge-green">1</span></td><td>HTML Parse</td><td>Scans detail page HTML for <code>/data/xfmg/image/</code>, <code>/data/xfmg/video/</code>, or <code>/data/xfmg/audio/</code> paths in media content containers.</td></tr>
+<tr><td><span class="badge badge-green">2</span></td><td>Thumbnail &rarr; Full-Res</td><td>Transforms thumbnail URL: <code>/data/xfmg/thumbnail/</code> &rarr; <code>/data/xfmg/image/</code> (XFMG stores them in parallel directories).</td></tr>
+<tr><td><span class="badge badge-green">3</span></td><td>Playwright JS</td><td>Queries live DOM: <code>img[src*="/data/xfmg/image/"]</code>, <code>video source</code>, <code>audio source</code>. Handles lazy-loaded content (<code>data-src</code>).</td></tr>
+<tr><td><span class="badge badge-yellow">4</span></td><td>XFMG /full Endpoint</td><td>XenForo native full-resolution download: <code>{media_url}/full</code>. Works reliably for videos, returns HTML for images.</td></tr>
+<tr><td><span class="badge badge-red">5</span></td><td>Thumbnail Fallback</td><td>Last resort &mdash; uses the thumbnail URL directly. Lower resolution, logged as a warning.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="media-albums">Album Handling</h3>
+<p>The crawler detects album pages (URLs matching <code>media/albums/[slug].[id]</code>) on the first listing page. Each album is crawled independently: all pages are enumerated and every item inside is processed via <code>process_item()</code>.</p>
+
+<h3 id="media-pool">Background Thread Pool</h3>
+<p>The media crawler uses the Phase 1 / Phase 2 split:</p>
+<ul>
+  <li><strong>Phase 1 (main Playwright thread):</strong> Navigate to detail page, parse HTML, gather all candidate download URLs from the 5 strategies, mark as in-flight, submit to thread pool, move to next item immediately.</li>
+  <li><strong>Phase 2 (background worker):</strong> Try candidate URLs in priority order, download file with streaming SHA-256, rename, upload to MEGA, update manifest, write <code>.done</code> marker.</li>
+</ul>
+
+<h3 id="media-queue">Queue Chunking (media_queue.py)</h3>
+<p>Categories are split into <strong>100-page chunks</strong> (e.g., "Loli pages 1-100", "Loli pages 101-200"). This balances work across instances since categories vary from 16 to 6,325 pages. Chunking is managed by <code>media_queue.py</code> with the same lease-based claiming as the forum queue.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 7: RESOURCE CRAWLER -->
+<!-- ============================================================ -->
+<section id="resource-crawler">
+<h2>7. Resource Crawler</h2>
+
+<h3 id="resource-overview">Overview</h3>
+<p><code>resource_crawler.py</code> crawls the XenForo Resource Manager (XFRM) &mdash; downloadable files like game mods, doujins, VAM content, and more across <strong>86 categories</strong>. Unlike the media crawler, <strong>no categories are excluded</strong>.</p>
+
+<h3 id="resource-cli">CLI Reference</h3>
+<div class="card">
+<pre><code>python resource_crawler.py --id 1   <span class="cmt"># run as instance 1</span>
+python resource_crawler.py --id 2   <span class="cmt"># run a second instance in another terminal</span></code></pre>
+<table>
+<thead><tr><th>Flag</th><th>Short</th><th>Required</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>--id</code></td><td><code>-i</code></td><td>Yes</td><td>Instance ID (1-based). Determines state file names and queue claiming.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="resource-download-button">Download Button Detection</h3>
+<p>Every resource page has a prominent Download button. The crawler looks for it using these class patterns:</p>
+<pre><code><span class="cmt"># Regex pattern for the download button</span>
+button--(?:resource-download|icon--download)|resourceDownload</code></pre>
+<p>The actual HTML typically looks like:</p>
+<pre><code>&lt;a class="button button--icon button--icon--download button--cta"
+   href="/forum/index.php?resources/slug.59/download"&gt;
+  &lt;span class="button-text"&gt;Download&lt;/span&gt;
+&lt;/a&gt;</code></pre>
+
+<h3 id="resource-external">External-Only Resources</h3>
+<p>Some resources are just links to external sites (no downloadable file). These are detected by:</p>
+<ol>
+  <li>No download button found on the page</li>
+  <li>Presence of <code>resourceExternal</code> CSS class</li>
+</ol>
+<p>External-only resources are <strong>skipped from download</strong> but still recorded in the manifest with <code>has_file: false</code> and <code>external_only: true</code>.</p>
+
+<h3 id="resource-strategies">3 Download Strategies</h3>
+<div class="card">
+<table>
+<thead><tr><th>#</th><th>Strategy</th><th>How It Works</th></tr></thead>
+<tbody>
+<tr><td><span class="badge badge-green">1</span></td><td>Download Button</td><td>Find button with class <code>button--icon--download</code> or <code>button--resource-download</code>, extract <code>href</code>.</td></tr>
+<tr><td><span class="badge badge-green">2</span></td><td>"Download" Link</td><td>Scan for links with "download" text whose <code>href</code> contains <code>resources/</code> or <code>attachments/</code>.</td></tr>
+<tr><td><span class="badge badge-yellow">3</span></td><td>/download Endpoint</td><td>Fallback: append <code>/download</code> to the resource URL. XFRM always supports this pattern.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="resource-pool">Background Thread Pool</h3>
+<p>Same Phase 1 / Phase 2 pattern as the media crawler. The main thread handles navigation and download URL detection; background workers handle the actual HTTP download and MEGA upload.</p>
+
+<h3 id="resource-queue">Queue Chunking (resource_queue.py)</h3>
+<p>Same approach as media: categories split into 100-page chunks. Resource categories range from 1 to 109 pages. All 86 categories produce approximately 87 work chunks.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 8: THREAD MEDIA CRAWLER -->
+<!-- ============================================================ -->
+<section id="thread-media-crawler">
+<h2>8. Thread Media Crawler</h2>
+
+<h3 id="tmc-overview">Overview</h3>
+<p><code>thread_media_crawler.py</code> is a <strong>headless media harvester</strong> &mdash; no browser required. It processes the <code>pending_media_XX.json</code> queue files generated by <code>crawler.py --text-only</code>, downloading each queued image, attachment, video, avatar, and site asset, then uploading to the exact MEGA path recorded in each queue record.</p>
+<p>This enables a <strong>two-phase workflow</strong>: first crawl all forum text/metadata quickly with <code>--text-only</code>, then download the media files separately (possibly on a faster connection, or in parallel with other crawlers).</p>
+
+<h3 id="tmc-cli">CLI Reference</h3>
+<div class="card">
+<pre><code>python thread_media_crawler.py --id 1               <span class="cmt"># process pending_media_01.json</span>
+python thread_media_crawler.py --id 1 --max-items 50 <span class="cmt"># process first 50 pending records</span>
+python thread_media_crawler.py --id 1 --dry-run      <span class="cmt"># report stats without downloading</span>
+python thread_media_crawler.py --id 1 --workers 5    <span class="cmt"># use 5 background threads</span></code></pre>
+<table>
+<thead><tr><th>Flag</th><th>Short</th><th>Default</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>--id</code></td><td><code>-i</code></td><td>Required</td><td>Instance ID. Determines which <code>pending_media_XX.json</code> to read.</td></tr>
+<tr><td><code>--max-items</code></td><td><code>-m</code></td><td>0 (all)</td><td>Limit how many records to process in this run.</td></tr>
+<tr><td><code>--dry-run</code></td><td><code>-n</code></td><td>off</td><td>Parse queue and show stats without downloading anything. Does not modify files.</td></tr>
+<tr><td><code>--workers</code></td><td><code>-w</code></td><td>3</td><td>Number of background download/upload threads.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="tmc-state">State Files</h3>
+<div class="card">
+<table>
+<thead><tr><th>File</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>pending_media_XX.json</code></td><td><strong>Input</strong> &mdash; queue of media URLs produced by <code>crawler.py --text-only</code>. Never modified by the harvester.</td></tr>
+<tr><td><code>thread_media_done_XX.json</code></td><td><strong>Done set</strong> &mdash; tracks which records have been processed. Prevents duplicate work on restart.</td></tr>
+<tr><td><code>thread_media_manifest_XX.json</code></td><td><strong>Manifest</strong> &mdash; maps source identity (URL + thread + post) to MEGA path, SHA-256, and status. Used by the mirror builder.</td></tr>
+<tr><td><code>thread_media_progress_XX.json</code></td><td><strong>Progress</strong> &mdash; live stats: pending, done, failed counts. Readable by the dashboard.</td></tr>
+</tbody>
+</table>
+<p>The queue file is <strong>read-only</strong> &mdash; the harvester tracks completion via the done-set file instead of mutating the queue. This means you can regenerate the queue by re-running <code>crawler.py --text-only</code> without losing progress.</p>
+</div>
+
+<h3 id="tmc-queue-schema">Queue Record Schema</h3>
+<div class="card">
+<p>Each record in <code>pending_media_XX.json</code>:</p>
+<pre><code>{
+  "url":         "https://allthefallen.moe/forum/attachments/image.12345/",
+  "type":        "image",          <span class="cmt">// image | attachment | video | avatar | banner | asset</span>
+  "mega_path":   ["Subforum", "Thread_123", "images"],
+  "thread_id":   "123",
+  "thread_page": 2,
+  "post_id":     "post-45678",
+  "context":     "",               <span class="cmt">// e.g. "smilies", "profile:username", "convo:msg_id"</span>
+  "queued_at":   "2026-03-08T14:30:00"
+}</code></pre>
+<p>The <strong>unique identity</strong> of each record is the tuple <code>(url, type, mega_path, thread_id, thread_page, post_id)</code>. The same image URL appearing in two different posts produces two separate records with different placement context.</p>
+</div>
+
+<h3 id="tmc-workflow">Typical Workflow</h3>
+<div class="card">
+<pre><code><span class="cmt"># Phase 1: Fast text-only crawl (no media downloads)</span>
+python crawler.py --id 1 --text-only
+
+<span class="cmt"># Phase 2: Download all queued media</span>
+python thread_media_crawler.py --id 1
+
+<span class="cmt"># Check status</span>
+python thread_media_crawler.py --id 1 --dry-run</code></pre>
+</div>
+</section>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 9: TOOLS & UTILITIES -->
+<!-- ============================================================ -->
+<section id="tools">
+<h2>9. Tools &amp; Utilities</h2>
+
+<h3 id="tool-dashboard">9a. Dashboard (app.py)</h3>
+<div class="card">
+<p><strong>app.py</strong> is the unified launch &amp; monitoring dashboard. It loads <code>subforum_map.json</code>, divides work across N crawler instances, launches each in its own terminal window, and monitors live progress. Uses <strong>customtkinter</strong> for a dark-themed GUI. Refreshes every 3 seconds with color-coded status indicators.</p>
+<p>The dashboard now shows <strong>SQLite tracking stats</strong> in the sidebar: total threads done/total, URLs uploaded, sourced directly from <code>crawl_state.db</code>. Instance progress is read from both JSON files and the SQLite <code>progress</code> table.</p>
+<pre><code><span class="cmt"># Launch the dashboard</span>
+python app.py</code></pre>
+</div>
+
+<h3 id="tool-viewer">9b. Archive Viewer (serve_archive.py)</h3>
+<div class="card">
+<p>A zero-dependency Python web server (stdlib only: <code>http.server</code>, <code>sqlite3</code>, <code>string.Template</code>) for browsing and searching the downloaded archive.</p>
+<pre><code><span class="cmt"># Start the viewer</span>
+python serve_archive.py /path/to/archive [--port <span class="num">9000</span>]
+<span class="cmt"># Default port: 8000, requires search.db in same directory</span></code></pre>
+</div>
+
+<h3 id="tool-search">9c. Search Database Builder (build_search.py)</h3>
+<div class="card">
+<p>Backfills <code>search.db</code> from existing <code>thread.json</code> files. Walks the directory tree recursively, handles partial saves (<code>thread_partial_*.json</code>), and is safe to re-run (<code>INSERT OR REPLACE</code>).</p>
+<pre><code>python build_search.py /path/to/archive</code></pre>
+</div>
+
+<h3 id="tool-retry">9d. Retry Runner (retry.py)</h3>
+<div class="card">
+<p>Re-attempts failed downloads and uploads from the retry queue. Reads <code>crawl_log_{iid}.json</code> files for retry items.</p>
+<pre><code><span class="cmt"># Retry all instances</span>
+python retry.py
+
+<span class="cmt"># Retry specific instance</span>
+python retry.py <span class="num">3</span></code></pre>
+<p>Handles two item types: <code>image</code>/<code>attachment</code> (download + upload) and <code>upload</code> (file already downloaded, just needs upload). Max 3 retries per item.</p>
+</div>
+
+<h3 id="tool-reconcile">9e. Reconciliation Checker (reconcile.py)</h3>
+<div class="card">
+<p>Performs a <strong>10-point consistency verification</strong> across all state files:</p>
+<ol>
+  <li>Global .done markers vs crawl log completed threads</li>
+  <li>Crawl log vs search.db alignment</li>
+  <li>Downloaded images vs asset manifest</li>
+  <li>Manifest vs uploaded_urls</li>
+  <li>Work queue vs crawl log alignment</li>
+  <li>Retry queue validation</li>
+  <li>Crawl log stats validation</li>
+  <li>Cross-instance duplicate detection</li>
+  <li>Legacy marker detection</li>
+  <li>Orphaned in_progress threads</li>
+</ol>
+<pre><code><span class="cmt"># Dry run (report only)</span>
+python reconcile.py --dry-run
+
+<span class="cmt"># Fix issues automatically</span>
+python reconcile.py --fix
+
+<span class="cmt"># Verbose output</span>
+python reconcile.py --verbose
+
+<span class="cmt"># JSON output for scripting</span>
+python reconcile.py --json</code></pre>
+</div>
+
+<h3 id="tool-repair">9f. Repair Tools</h3>
+<div class="card">
+<h4>repair_failed_images.py</h4>
+<p>Recovers images that were permanently marked as failed (often due to login page detection bugs). If a thread's failure rate exceeds 15%, it removes failed URLs from dedup and un-completes the thread for re-scraping.</p>
+<pre><code><span class="cmt"># Report only</span>
+python repair_failed_images.py
+
+<span class="cmt"># Fix issues</span>
+python repair_failed_images.py --fix
+
+<span class="cmt"># Fix specific instance</span>
+python repair_failed_images.py --fix --instance <span class="num">3</span></code></pre>
+
+<h4>repair_zero_threads.py</h4>
+<p>Finds subforums incorrectly marked as done with 0 threads (due to selector bugs). Un-completes them for retry.</p>
+<pre><code>python repair_zero_threads.py --fix</code></pre>
+</div>
+
+<h3 id="tool-login">9g. Login Tester (test_login.py)</h3>
+<div class="card">
+<p>Opens a visible Playwright browser window to verify that your local auth/session setup works. Checks for "Log in"/"Register" indicators on the page.</p>
+<pre><code>python test_login.py</code></pre>
+</div>
+<h3 id="tool-replica">9h. Replica Server (replica/app.py)</h3>
+<div class="card">
+<p><strong>replica/app.py</strong> is a Flask application that serves a full read-only replica of the forum with XenForo-style query-string routing, original CSS variables, and real saved HTML post bodies. This is the primary way to browse the archive with visual fidelity.</p>
+<pre><code><span class="cmt"># Start the replica server</span>
+<span class="kw">cd</span> replica/
+python app.py
+<span class="cmt"># Opens at http://localhost:8080</span></code></pre>
+<h4>Key differences from serve_archive.py:</h4>
+<ul>
+  <li><strong>Route fidelity</strong> &mdash; mirrors XenForo URL patterns: <code>/index.php?threads/slug.id/page-N</code>, <code>/index.php?forums/slug.id/</code>, direct post links, <code>goto/post</code>, etc.</li>
+  <li><strong>Saved HTML rendering</strong> &mdash; uses real archived HTML with link/asset rewriting instead of plain-text reconstruction</li>
+  <li><strong>Multi-source data</strong> &mdash; consumes search.db, crawl_state.db, saved HTML from MEGA, subforum_map.json, and asset manifests</li>
+  <li><strong>Asset serving</strong> &mdash; local thread images/attachments served via <code>/forum/archive-asset</code> route with manifest-backed path resolution</li>
+  <li><strong>HTML sanitization</strong> &mdash; strips CSRF tokens, session data, and tracking scripts at render time via <code>data.py</code></li>
+</ul>
+<h4>Key files:</h4>
+<table>
+<thead><tr><th>File</th><th>Role</th></tr></thead>
+<tbody>
+<tr><td><code>replica/app.py</code></td><td>Flask app with XenForo-style URL routing (threads, subforums, profiles, search, media, resources, posts)</td></tr>
+<tr><td><code>replica/data.py</code></td><td>Data layer &mdash; loads all archive sources, parses saved HTML, rewrites links/assets, resolves post locations</td></tr>
+<tr><td><code>replica/templates/</code></td><td>Jinja2 templates modeled on XenForo DOM structure (19 templates across pages/ and components/)</td></tr>
+<tr><td><code>replica/static/</code></td><td>CSS (xf-variables.css, xf-core.css, replica.css), JS (replica.js), images, fonts</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 10: TROUBLESHOOTING -->
+<!-- ============================================================ -->
+<section id="troubleshooting">
+<h2>10. Troubleshooting</h2>
+
+<h3 id="ts-php-ext">Files Downloading as .php</h3>
+<div class="card">
+<p><strong>Symptom:</strong> All downloaded files have <code>.php</code> extension instead of their real type.</p>
+<p><strong>Cause:</strong> XenForo serves downloads through <code>index.php?resources/slug.59/download</code>. When the server returns <code>Content-Type: application/octet-stream</code>, the old extension detection fell back to parsing the URL and extracted <code>.php</code> from <code>index.php</code>.</p>
+<p><strong>Fix:</strong> Extension detection now prioritizes <code>Content-Disposition</code> header, and script extensions (<code>.php</code>, <code>.html</code>, <code>.htm</code>, <code>.asp</code>, <code>.aspx</code>, <code>.jsp</code>, <code>.cgi</code>) are filtered from URL fallback.</p>
+</div>
+
+<h3 id="ts-login">Login / 2FA Failures</h3>
+<div class="card">
+<p><strong>Symptom:</strong> Crawler says "Login unable to confirm 2FA" or pages show login forms.</p>
+<p><strong>Solutions:</strong></p>
+<ul>
+  <li>Refresh your local auth/session details in <code>config.py</code></li>
+  <li>Run <code>python test_login.py</code> to verify access before resuming the crawl</li>
+  <li>If the site requires 2FA or an interactive challenge, complete that in the browser first</li>
+  <li>Check the session recovery files only if you need to confirm whether automatic recovery updated them</li>
+</ul>
+</div>
+
+<h3 id="ts-mega">MEGA Auth Expiry</h3>
+<div class="card">
+<p><strong>Symptom:</strong> Upload failures with auth errors, "MEGA session expired" in logs.</p>
+<p><strong>What happens:</strong> The crawler detects auth errors and automatically calls <code>mega_relogin()</code> (protected by <code>mega_lock</code>). If re-login fails, items are added to the retry queue.</p>
+<p><strong>If persistent:</strong> Check MEGA account status, verify your local access settings in <code>config.py</code>, then run <code>retry.py</code> after fixing.</p>
+</div>
+
+<h3 id="ts-rate-limit">Rate Limiting (429)</h3>
+<div class="card">
+<p><strong>Symptom:</strong> Lots of 429 errors in logs, downloads slowing down.</p>
+<p><strong>What happens:</strong> The crawler respects <code>Retry-After</code> headers and waits the specified duration. Retries with exponential backoff (3s, 6s, 9s).</p>
+<p><strong>Mitigation:</strong> Reduce the number of concurrent instances or increase the <code>DELAY</code> constant in the crawler config.</p>
+</div>
+
+<h3 id="ts-html-instead">HTML Instead of File</h3>
+<div class="card">
+<p><strong>Symptom:</strong> Downloaded files are actually HTML pages (login forms, error pages).</p>
+<p><strong>Detection:</strong> <code>download_file()</code> checks the first bytes of the response for HTML indicators (<code>&lt;html</code>, <code>&lt;form</code>, <code>password</code>, "Oops!", "not found"). If detected, the download is rejected.</p>
+<p><strong>Common cause:</strong> Local session/auth state expired. The server redirected to a login page instead of serving the file.</p>
+</div>
+
+<h3 id="ts-stale-lease">Stale Queue Leases</h3>
+<div class="card">
+<p><strong>Symptom:</strong> Work items stuck as "in_progress" but no crawler is working on them.</p>
+<p><strong>Automatic fix:</strong> After 20 minutes without a heartbeat, the lease is considered stale and another instance can reclaim it.</p>
+<p><strong>Manual fix:</strong> Edit the queue JSON file directly, change <code>status</code> back to <code>"pending"</code> and clear the <code>owner</code> field.</p>
+</div>
+
+<h3 id="ts-sqlite">SQLite Database Issues</h3>
+<div class="card">
+<p><strong>Symptom:</strong> <code>database is locked</code> errors in logs.</p>
+<p><strong>Cause:</strong> Too many concurrent writes. WAL mode handles this well but there are limits.</p>
+<p><strong>Fix:</strong> The busy timeout is set to 5 seconds, which should handle normal contention. If persistent, check that no external tool (DB Browser, etc.) has the database open with a write lock.</p>
+<p><strong>Symptom:</strong> Migration shows wrong numbers or crawl_state.db seems outdated.</p>
+<p><strong>Fix:</strong> Re-run <code>python forum/migrate.py --commit</code>. The migration uses <code>INSERT OR IGNORE</code> / <code>ON CONFLICT</code> so it's safe to re-run &mdash; existing records won't be overwritten.</p>
+<p><strong>Nuclear option:</strong> Delete <code>crawl_state.db</code> and re-run the migration. The JSON files are the source of truth during migration. The crawlers will recreate the database on next startup.</p>
+</div>
+
+<h3 id="ts-general-tips">General Tips</h3>
+<ul>
+  <li>Check <code>crawl_state.db</code> for aggregate stats: <code>python -c "from forum.tracking import db; print(db.get_stats())"</code></li>
+  <li>Always check crash logs (<code>{prefix}_crash_{iid}.ndjl</code>) or query <code>SELECT * FROM errors ORDER BY timestamp DESC LIMIT 20</code> for detailed error info</li>
+  <li>Run <code>reconcile.py --dry-run</code> periodically to check for consistency issues</li>
+  <li>Use <code>retry.py</code> after each major crawl session to recover failed items</li>
+  <li>Keep a backup of state files before running repair tools</li>
+  <li>The summary files (<code>summary_{iid}.txt</code>) give a quick human-readable status</li>
+</ul>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 11: OPERATOR NOTES -->
+<!-- ============================================================ -->
+<section id="operator-notes">
+<h2>11. Operator Notes &amp; Guardrails</h2>
+
+<div class="card">
+<h4>Safe Defaults</h4>
+<ul>
+  <li>Prefer restarting the same command over hand-editing state files.</li>
+  <li>Run <code>python reconcile.py --dry-run</code> before you assume the crawl is damaged.</li>
+  <li>Use <code>serve_archive.py</code> to inspect real outputs before trying to fix them.</li>
+  <li>Use the repair tools for known failure classes before inventing new manual surgery.</li>
+</ul>
+</div>
+
+<div class="card">
+<h4>What Usually Deserves Immediate Attention</h4>
+<ul>
+  <li>Repeated <code>Could not recover session.</code> messages.</li>
+  <li>Large batches of downloads turning into HTML or login pages.</li>
+  <li>No queue movement across every crawler family at the same time.</li>
+  <li>Unexpected growth in retry queues after a run that looked healthy.</li>
+</ul>
+</div>
+
+<div class="card">
+<h4>What Often Looks Scary But Is Usually Fine</h4>
+<ul>
+  <li>One worker dying while others continue; the lease system can recover that work.</li>
+  <li>Temporary retries, brief rate limiting, or one noisy subforum.</li>
+  <li>Partial archive browsing during an active crawl; the viewer is for inspection, not final parity.</li>
+</ul>
+</div>
+
+<div class="info-box">
+  <strong>About project history:</strong> This guide is now focused on operating and understanding the archive. Historical changes are better tracked in git history or project notes than in a giant in-guide changelog.
+</div>
+
+<div class="card">
+  <p><strong>Practical stopping point:</strong> if you have read through this section and the troubleshooting section above it, you are done with the operator guide. Only jump into the companion docs if you are debugging internals or designing a museum/replica program.</p>
+</div>
+</section>
+
+</main>
+
+<!-- Back to top button -->
+<button id="back-to-top" title="Back to top">&uarr;</button>
+
+<script>
+(function() {
+  'use strict';
+
+  // ── Build TOC from headings ──
+  const toc = document.getElementById('toc');
+  const content = document.getElementById('content');
+  const headings = content.querySelectorAll('h2, h3');
+  const tocUl = document.createElement('ul');
+  let currentGroup = null;
+  let currentChildren = null;
+
+  headings.forEach(h => {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    const section = h.closest('section');
+    const id = h.id || (section ? section.id : '');
+    a.href = '#' + id;
+    a.textContent = h.textContent;
+
+    if (h.tagName === 'H2') {
+      a.classList.add('toc-h2', 'toc-group-toggle');
+      li.appendChild(a);
+
+      currentChildren = document.createElement('ul');
+      currentChildren.classList.add('toc-children');
+      li.appendChild(currentChildren);
+      currentGroup = li;
+      tocUl.appendChild(li);
+    } else {
+      a.classList.add('toc-h3');
+      li.appendChild(a);
+      if (currentChildren) currentChildren.appendChild(li);
+      else tocUl.appendChild(li);
+    }
+  });
+
+  toc.appendChild(tocUl);
+
+  // Set initial max-height for children
+  document.querySelectorAll('.toc-children').forEach(ul => {
+    ul.style.maxHeight = ul.scrollHeight + 'px';
+  });
+
+  // ── Collapse/Expand ──
+  document.querySelectorAll('.toc-group-toggle').forEach(toggle => {
+    toggle.addEventListener('click', function(e) {
+      e.preventDefault();
+      const li = this.parentElement;
+      const children = li.querySelector('.toc-children');
+      if (!children) { window.location.hash = this.getAttribute('href'); return; }
+
+      this.classList.toggle('collapsed');
+      if (children.classList.contains('collapsed')) {
+        children.classList.remove('collapsed');
+        children.style.maxHeight = children.scrollHeight + 'px';
+      } else {
+        children.classList.add('collapsed');
+        children.style.maxHeight = '0';
+      }
+
+      // Still navigate
+      const id = this.getAttribute('href').slice(1);
+      const target = document.getElementById(id);
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+
+  // ── Scroll Spy ──
+  const tocLinks = toc.querySelectorAll('a');
+  const observerOptions = { rootMargin: '-80px 0px -70% 0px', threshold: 0 };
+  let activeLink = null;
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        if (activeLink) activeLink.classList.remove('active');
+        const link = toc.querySelector('a[href="#' + id + '"]');
+        if (link) {
+          link.classList.add('active');
+          activeLink = link;
+        }
+      }
+    });
+  }, observerOptions);
+
+  // Observe sections and subsection headings
+  content.querySelectorAll('section, h3[id]').forEach(el => observer.observe(el));
+
+  // ── Search Filter ──
+  const searchBox = document.getElementById('search-box');
+  searchBox.addEventListener('input', function() {
+    const q = this.value.toLowerCase().trim();
+    const sections = content.querySelectorAll('section');
+    const tocItems = toc.querySelectorAll('li');
+
+    if (!q) {
+      sections.forEach(s => s.style.display = '');
+      tocItems.forEach(li => li.style.display = '');
+      return;
+    }
+
+    sections.forEach(s => {
+      const text = s.textContent.toLowerCase();
+      s.style.display = text.includes(q) ? '' : 'none';
+    });
+
+    // Update TOC visibility to match
+    tocUl.querySelectorAll(':scope > li').forEach(li => {
+      const a = li.querySelector('a');
+      const id = a.getAttribute('href').slice(1);
+      const section = document.getElementById(id);
+      li.style.display = (section && section.style.display !== 'none') ? '' : 'none';
+    });
+  });
+
+  // ── Back to Top ──
+  const btn = document.getElementById('back-to-top');
+  window.addEventListener('scroll', function() {
+    btn.classList.toggle('visible', window.scrollY > 400);
+  });
+  btn.addEventListener('click', function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // ── Sidebar Toggle (mobile) ──
+  const sidebar = document.getElementById('sidebar');
+  const toggle = document.getElementById('sidebar-toggle');
+  toggle.addEventListener('click', function() {
+    sidebar.classList.toggle('open');
+  });
+
+  // Close sidebar when clicking a link (mobile)
+  toc.addEventListener('click', function(e) {
+    if (e.target.tagName === 'A' && window.innerWidth <= 900) {
+      sidebar.classList.remove('open');
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATF Archive Reference</title>
+<meta name="theme-color" content="#0f172a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230f172a'/%3E%3Cpath d='M18 16h22a6 6 0 0 1 6 6v26l-10-5-10 5-10-5V22a6 6 0 0 1 6-6Z' fill='%2360a5fa'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #111827;
+  --panel: #1e293b;
+  --panel-2: #0f172a;
+  --code: #0d1117;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --border: #334155;
+  --accent: #60a5fa;
+  --accent-dim: #1e3a5f;
+  --warn: #f59e0b;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background:
+    linear-gradient(180deg, rgba(7, 11, 20, 0.72), rgba(7, 11, 20, 0.9)),
+    url('docs_assets/backgrounddark-compressed.jpg') top center / cover fixed no-repeat,
+    var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+}
+main {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2rem 1.4rem 4rem;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(15, 23, 42, 0.94);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+}
+.topbar-inner {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0.85rem 1.4rem;
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+.topbar a, .doc-links a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.topbar a:hover, .doc-links a:hover { text-decoration: underline; }
+h1, h2, h3 { line-height: 1.25; }
+h1 { margin: 0 0 0.4rem; color: var(--accent); }
+h2 {
+  margin: 2.3rem 0 0.8rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--accent-dim);
+  color: var(--accent);
+}
+h3 { margin: 1.5rem 0 0.5rem; color: #93c5fd; }
+p { margin: 0.6rem 0 1rem; }
+code {
+  background: var(--code);
+  color: #7dd3fc;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+}
+pre {
+  background: var(--code);
+  border: 1px solid var(--border);
+  padding: 1rem 1.1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+.card, .note {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  margin: 1rem 0;
+  backdrop-filter: blur(5px);
+}
+.note {
+  border-left: 4px solid var(--warn);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0 1.25rem;
+}
+th, td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  background: var(--accent-dim);
+  color: #bfdbfe;
+}
+.diagram {
+  background: var(--code);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  white-space: pre-wrap;
+  font-family: "Cascadia Code", Consolas, monospace;
+  color: var(--muted);
+}
+ul { margin: 0.4rem 0 1rem 1.35rem; }
+li { margin: 0.25rem 0; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <strong>Doc Set:</strong>
+    <a href="index.html">Docs Home</a>
+    <a href="archive_guide.html">Operator Guide</a>
+    <a href="archive_reference.html">System Reference</a>
+    <a href="archival_museum_design.html">Museum Builder Doc</a>
+  </div>
+</div>
+
+<main>
+  <h1>ATF Archive Reference</h1>
+  <p>This document is the internal reference companion to <a href="archive_guide.html">the operator guide</a>. It is for understanding how the archive works, what files and state exist, and which pieces matter when debugging or extending the system.</p>
+
+  <div class="note">
+    No live credentials, session values, browser-exported auth details, or machine-specific secrets are documented here. This is architecture and state reference, not an auth manual.
+  </div>
+
+  <h2>1. System Map</h2>
+  <table>
+    <thead><tr><th>Component</th><th>Primary role</th><th>Important files</th></tr></thead>
+    <tbody>
+      <tr><td>Forum discovery</td><td>Discovers forum hierarchy and pre-creates folder structure</td><td><code>Scout.py</code>, <code>subforum_map.json</code></td></tr>
+      <tr><td>Gallery discovery</td><td>Maps XFMG categories and page counts</td><td><code>scout_media.py</code>, <code>media_gallery_report.json</code></td></tr>
+      <tr><td>Resource discovery</td><td>Maps XFRM categories and download characteristics</td><td><code>scout_resources.py</code>, <code>resources_report.json</code></td></tr>
+      <tr><td>Forum crawler</td><td>Captures thread text, metadata, saved HTML, and search records</td><td><code>crawler.py</code>, <code>work_queue.json</code></td></tr>
+      <tr><td>Thread media crawler</td><td>Downloads media referenced by forum posts</td><td><code>thread_media_crawler.py</code>, <code>pending_media_XX.json</code></td></tr>
+      <tr><td>Gallery crawler</td><td>Captures XFMG media assets</td><td><code>media_crawler.py</code>, <code>media_queue.json</code></td></tr>
+      <tr><td>Resource crawler</td><td>Captures XFRM downloadable files</td><td><code>resource_crawler.py</code>, <code>resource_queue.json</code></td></tr>
+      <tr><td>Shared state</td><td>Tracks progress, URLs, subforums, and errors across instances</td><td><code>crawl_state.db</code>, <code>forum/tracking.py</code></td></tr>
+      <tr><td>Archive browsing (legacy)</td><td>Local search and static browsing over downloaded data</td><td><code>serve_archive.py</code>, <code>search.db</code>, <code>build_search.py</code></td></tr>
+      <tr><td>Replica server</td><td>Full read-only forum replica with XenForo routing, saved HTML rendering, link/asset rewriting</td><td><code>replica/app.py</code>, <code>replica/data.py</code>, <code>replica/templates/</code>, <code>replica/static/</code></td></tr>
+      <tr><td>Shared crawler library</td><td>Common modules used by all crawlers: session management, network, scraping, tracking, state, MEGA upload</td><td><code>forum/</code> package (15 modules), <code>crawler_common.py</code>, <code>scout_common.py</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>2. Crawl Pipeline</h2>
+  <div class="diagram">local config
+    |
+    v
+test_login.py
+    |
+    v
+scouts -> queue/report files -> crawler families
+    |
+    v
+temp files + manifests + progress + SQLite tracking
+    |
+    v
+MEGA / local archive output
+    |
+    v
+search, verification, repair, replica work</div>
+
+  <div class="card">
+    <h3>Important practical point</h3>
+    <p>The pipeline is not one universal “source chain.” Different page types and tools read from different layers. Forum crawling, media crawling, local browsing, and the replica each consume overlapping but not identical state.</p>
+  </div>
+
+  <h2>3. Shared State and Queues</h2>
+  <h3>Queue files</h3>
+  <table>
+    <thead><tr><th>File</th><th>What it controls</th></tr></thead>
+    <tbody>
+      <tr><td><code>work_queue.json</code></td><td>Lease-based forum subforum work allocation</td></tr>
+      <tr><td><code>media_queue.json</code></td><td>Gallery page-range chunk allocation</td></tr>
+      <tr><td><code>resource_queue.json</code></td><td>Resource page-range chunk allocation</td></tr>
+      <tr><td><code>pending_media_XX.json</code></td><td>Thread-media catch-up queue produced by forum text-first runs</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Shared database</h3>
+  <table>
+    <thead><tr><th>Table</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>threads</code></td><td>Thread status, page progress, ownership, timestamps</td></tr>
+      <tr><td><code>urls</code></td><td>Downloaded/uploaded URL tracking and content hashes</td></tr>
+      <tr><td><code>subforums</code></td><td>Claiming, lease, and completion state</td></tr>
+      <tr><td><code>profiles</code></td><td>Tracked users / profile scrape state</td></tr>
+      <tr><td><code>errors</code></td><td>Structured error log</td></tr>
+      <tr><td><code>progress</code></td><td>Live per-instance dashboard state</td></tr>
+      <tr><td><code>mega_folders</code></td><td>MEGA folder cache</td></tr>
+    </tbody>
+  </table>
+
+  <h2>4. Deduplication and Identity</h2>
+  <table>
+    <thead><tr><th>Layer</th><th>What it prevents</th><th>Where it lives</th></tr></thead>
+    <tbody>
+      <tr><td>Cross-instance URL tracking</td><td>Two workers processing the same URL independently</td><td><code>crawl_state.db</code> / <code>urls</code></td></tr>
+      <tr><td>Per-instance downloaded sets</td><td>Repeat handling within one crawler run</td><td>JSON sets per instance</td></tr>
+      <tr><td>Uploaded URL sets</td><td>Re-uploading the same source URL</td><td>JSON sets per instance</td></tr>
+      <tr><td>SHA-256 content hashes</td><td>Uploading identical content under different URLs</td><td>hash JSON + SQLite content hash</td></tr>
+      <tr><td>Manifest records</td><td>Losing provenance or placement context</td><td>manifest JSONs</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card">
+    <h3>Identity rule of thumb</h3>
+    <p>For archival museum work, raw files alone are not enough. The useful identity is normally some combination of <code>url</code>, <code>type</code>, <code>thread_id</code>, <code>thread_page</code>, <code>post_id</code>, <code>mega_path</code>, and <code>content_hash</code>. The exact tuple depends on the artifact type.</p>
+  </div>
+
+  <h2>5. Output and Archive Layout</h2>
+  <h3>Local output classes</h3>
+  <ul>
+    <li>Saved forum HTML and JSON payloads</li>
+    <li>Attachment and image manifests</li>
+    <li>Gallery and resource files</li>
+    <li>Progress / summary / retry / repair state</li>
+    <li>Search index and local viewer support files</li>
+  </ul>
+
+  <h3>Archive hierarchy</h3>
+  <pre><code>Archive_ATF_Forum/
+  _capture/
+    theme_data.json          # XenForo CSS variables, colors, fonts
+    dom_structure.json       # Header/footer/nav DOM snapshots
+  replica/
+    app.py                   # Flask server with XenForo-style routing
+    data.py                  # Data layer (124 KB) — loads all sources, rewrites links/assets
+    templates/               # 19 Jinja2 templates (pages/ + components/)
+    static/                  # CSS (xf-variables, xf-core, replica), JS, images, fonts
+  forum/                     # Shared crawler package (see Section 5a)
+  All The Fallen/
+    Category/
+      Forum/
+        thread_12345.html
+        thread_12345.json
+        images/
+        asset_manifest_*.json  # Maps source URLs to local file paths
+  Media Gallery/
+    Category/
+      media files...
+  Resources/
+    Category/
+      downloaded files...
+  crawl_state.db             # Shared crawl tracking (SQLite WAL)
+  search.db                  # Full-text search index (SQLite FTS5)
+  subforum_map.json          # 142 subforums with IDs, names, paths
+  REPLICA_CHECKLIST.md       # Build status and priorities
+  REPLICA_TRACKER.xlsx       # Per-page-type coverage and QA mismatches</code></pre>
+
+  <div class="card">
+    <h3>Folder naming</h3>
+    <ul>
+      <li>Forward slashes in names are normalized so path segments do not explode.</li>
+      <li>Illegal filename characters are stripped.</li>
+      <li>Scout-created structure is preferred over ad hoc path guessing later.</li>
+    </ul>
+  </div>
+
+  <h3>Asset manifests</h3>
+  <p>Each crawled thread produces an <code>asset_manifest_*.json</code> file that maps source URLs to local file paths. The replica uses these to serve thread images and attachments via the <code>/forum/archive-asset</code> route. Manifest records include: source URL, local filename, content hash (SHA-256), thread/post placement context, and file type.</p>
+
+  <h2>5a. The <code>forum/</code> Package</h2>
+  <p>The <code>forum/</code> directory is a Python package containing shared modules used by all crawler families. Understanding this package is essential for debugging or extending any crawler.</p>
+  <table>
+    <thead><tr><th>Module</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td><code>tracking.py</code></td><td>SQLite-backed crawl state tracking: thread status, URL dedup, subforum progress, error logging. WAL mode for concurrent access.</td></tr>
+      <tr><td><code>scrapers.py</code></td><td>Post/thread HTML parsing, content extraction, metadata collection from XenForo pages.</td></tr>
+      <tr><td><code>session.py</code></td><td>Playwright browser session management, cookie handling, auto-recovery on auth expiry.</td></tr>
+      <tr><td><code>network.py</code></td><td>HTTP download utilities with streaming SHA-256, retry logic, rate-limit handling, HTML-instead-of-file detection.</td></tr>
+      <tr><td><code>mega_upload.py</code></td><td>MEGA cloud upload with folder cache, re-login on auth expiry, thread-safe locking.</td></tr>
+      <tr><td><code>state.py</code></td><td>Per-instance JSON state management: downloaded sets, uploaded URLs, progress counters.</td></tr>
+      <tr><td><code>migrate.py</code></td><td>Migration from legacy JSON-based state to SQLite. Safe to re-run (<code>INSERT OR IGNORE</code>).</td></tr>
+      <tr><td><code>sanitize_html.py</code></td><td>887-line HTML sanitizer. Strips CSRF tokens, session data, tracking scripts, form elements while preserving DOM structure for the replica.</td></tr>
+      <tr><td><code>navigation.py</code></td><td>XenForo page navigation parsing, pagination detection, thread/subforum URL construction.</td></tr>
+      <tr><td><code>url_helpers.py</code></td><td>URL normalization, path extraction, XenForo query-string URL parsing.</td></tr>
+      <tr><td><code>site_assets.py</code></td><td>Site-level asset discovery and download (CSS, JS, icons, logos, fonts).</td></tr>
+      <tr><td><code>summary.py</code></td><td>Human-readable summary generation for completed crawl sessions.</td></tr>
+      <tr><td><code>config.py</code></td><td>Internal configuration constants (delays, timeouts, retry limits, file patterns).</td></tr>
+      <tr><td><code>main.py</code></td><td>CLI entry point and argument parsing for the forum crawler.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>5b. Search Database Schema (search.db)</h2>
+  <p>The search database uses SQLite FTS5 for full-text search. It is built by <code>build_search.py</code> from archived thread JSON files, and is also written to live by crawler instances during crawling.</p>
+
+  <div class="note">
+    <strong>ID type mismatch:</strong> <code>search.db</code> stores thread and post IDs as <strong>TEXT</strong>, while <code>crawl_state.db</code> stores them as <strong>INTEGER</strong>. When joining across databases or doing lookups in <code>replica/data.py</code>, cast appropriately.
+  </div>
+
+  <table>
+    <thead><tr><th>Table</th><th>Key columns</th><th>Current row count</th></tr></thead>
+    <tbody>
+      <tr><td><code>threads</code></td><td><code>thread_id</code> (TEXT PK), <code>title</code>, <code>subforum_name</code>, <code>author</code>, <code>reply_count</code>, <code>view_count</code>, <code>last_post_date</code>, <code>tags</code></td><td>2,677</td></tr>
+      <tr><td><code>posts</code></td><td><code>post_id</code> (TEXT PK), <code>thread_id</code> (TEXT FK), <code>author</code>, <code>post_date</code>, <code>text_content</code>, <code>page_number</code></td><td>63,060 (59,397 with text)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>6. Diagnostic Tools</h2>
+  <table>
+    <thead><tr><th>Tool</th><th>Best use</th></tr></thead>
+    <tbody>
+      <tr><td><code>app.py</code> (project root)</td><td>Main operator dashboard and crawler launcher (customtkinter GUI)</td></tr>
+      <tr><td><code>replica/app.py</code></td><td>Flask replica server &mdash; browse the archive with XenForo-style routes and visual fidelity</td></tr>
+      <tr><td><code>serve_archive.py</code></td><td>Legacy archive viewer &mdash; lightweight inspection of captured data</td></tr>
+      <tr><td><code>build_search.py</code></td><td>Backfill / rebuild search.db from archived thread JSON data</td></tr>
+      <tr><td><code>retry.py</code></td><td>Re-attempt failed downloads/uploads</td></tr>
+      <tr><td><code>reconcile.py</code></td><td>High-level 10-point consistency verification</td></tr>
+      <tr><td><code>repair_zero_threads.py</code></td><td>Recover bad empty-forum completions</td></tr>
+      <tr><td><code>repair_failed_images.py</code></td><td>Recover image failures caused by bad auth/page responses</td></tr>
+    </tbody>
+  </table>
+
+  <h2>7. Replica Data Sources by Page Type</h2>
+  <p>The replica does not use a single universal data chain. Each page type has its own source priority:</p>
+  <table>
+    <thead><tr><th>Page type</th><th>Primary source</th><th>Fallback sources</th></tr></thead>
+    <tbody>
+      <tr><td>Thread page</td><td>Saved HTML from MEGA (parsed by <code>data.py</code>)</td><td><code>search.db</code> posts &rarr; text-only reconstruction</td></tr>
+      <tr><td>Subforum listing</td><td>Saved subforum HTML from MEGA</td><td><code>crawl_state.db</code> threads + <code>search.db</code> metadata</td></tr>
+      <tr><td>Forum home</td><td><code>subforum_map.json</code> + <code>crawl_state.db</code> stats</td><td>Hardcoded category structure from <code>dom_structure.json</code></td></tr>
+      <tr><td>User profile</td><td><code>crawl_state.db</code> profiles table</td><td>Placeholder with username only</td></tr>
+      <tr><td>Search results</td><td><code>search.db</code> FTS5 queries</td><td>None (search requires the index)</td></tr>
+      <tr><td>Media / Resources</td><td>Placeholder pages (crawl data exists but replica wiring is pending)</td><td>None yet</td></tr>
+    </tbody>
+  </table>
+
+  <h2>8. Practical Caveats</h2>
+  <div class="card">
+    <ul>
+      <li>Do not treat the archive browser, saved HTML, and replica as consuming exactly the same source graph.</li>
+      <li>Do not assume a placeholder UI means missing data; sometimes it means missing wiring.</li>
+      <li>Do not overwrite raw source artifacts just because a transformed version looks cleaner.</li>
+      <li>Do not assume queue/state files are the only truth once SQLite tracking is in play.</li>
+      <li>Do not confuse root <code>app.py</code> (operator dashboard) with <code>replica/app.py</code> (Flask replica server).</li>
+      <li>When looking up post IDs across databases, remember: <code>search.db</code> uses TEXT IDs, <code>crawl_state.db</code> uses INTEGER IDs.</li>
+    </ul>
+  </div>
+</main>
+</body>
+</html>
